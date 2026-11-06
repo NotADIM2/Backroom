@@ -165,3 +165,7 @@ The automated tests cover the case workflow, refund limits, sign-off and repeat 
 ## About
 
 Built for the [Flip the Switch hackathon](https://www.wemakedevs.org/hackathons/switch) by WeMakeDevs, in Track 01: Best Business Workflow.
+
+## License
+
+Released under the [MIT License](LICENSE).
