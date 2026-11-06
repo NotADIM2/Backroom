@@ -1,0 +1,14 @@
+{
+  "name": "backroom",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI agents check refund requests in a Switch room, and a person signs off before the customer hears anything.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.mjs",
+    "test": "node --test"
+  }
+}

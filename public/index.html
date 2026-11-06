@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backroom sign-off</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f2f3f5;
+    --panel: #ffffff;
+    --sunken: #f6f7f8;
+    --ink: #14171c;
+    --muted: #586170;
+    --line: #e3e5e9;
+    --line-strong: #c6cbd3;
+    --primary: #14171c;
+    --primary-hover: #2c313a;
+    --primary-ink: #ffffff;
+    --warn-bg: #fdf0d5;
+    --warn-ink: #734600;
+    --warn-dot: #d98a00;
+    --ok-bg: #def3e7;
+    --ok-ink: #0f5c3d;
+    --ok-dot: #1c9463;
+    --bad-bg: #fbe4e0;
+    --bad-ink: #8f2318;
+    --quiet-bg: #eceef1;
+    --segment: #ffffff;
+    --shadow: 0 1px 2px rgba(20, 23, 28, 0.05);
+    --bar: #14171c;
+    --bar-ink: #f4f5f7;
+    --bar-muted: #a5adb9;
+    --glow: #f5b83d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1013;
+      --panel: #181b20;
+      --sunken: #111317;
+      --ink: #eef0f3;
+      --muted: #9ea7b3;
+      --line: #2a2e35;
+      --line-strong: #434953;
+      --primary: #eef0f3;
+      --primary-hover: #ffffff;
+      --primary-ink: #14171c;
+      --warn-bg: #3a2b0e;
+      --warn-ink: #f6cd7c;
+      --warn-dot: #f5b83d;
+      --ok-bg: #12301f;
+      --ok-ink: #8fe0b8;
+      --ok-dot: #4cc78f;
+      --bad-bg: #3c1c18;
+      --bad-ink: #f5aea5;
+      --quiet-bg: #262a30;
+      --segment: #454b56;
+      --shadow: none;
+      --bar: #181b20;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 14px/1.55 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 24px;
+    padding: 14px max(28px, calc((100vw - 1360px) / 2 + 28px));
+    background: var(--bar);
+    color: var(--bar-ink);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .mark {
+    position: relative;
+    flex: none;
+    width: 16px;
+    height: 22px;
+    border: 2px solid var(--bar-ink);
+    border-bottom: 0;
+    border-radius: 3px 3px 0 0;
+  }
+  .mark::after {
+    content: "";
+    position: absolute;
+    left: -5px;
+    right: -5px;
+    bottom: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--glow);
+  }
+  h1 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--bar-muted); font-size: 13px; }
+  #notice {
+    width: min(100% - 56px, 1304px);
+    margin: 16px auto 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+    font-weight: 500;
+  }
+  #notice[hidden] { display: none; }
+  main {
+    display: grid;
+    grid-template-columns: 264px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 24px 28px 56px;
+  }
+  .rail { position: sticky; top: 24px; }
+  h2.rail-label { margin: 0 0 10px; color: var(--muted); font-size: 13px; font-weight: 600; }
+  #cases { display: flex; flex-direction: column; gap: 8px; }
+  .case-button {
+    display: block;
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 120ms ease;
+  }
+  .case-button:hover { border-color: var(--line-strong); }
+  .case-button[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .case-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 600; }
+  .case-sub { margin-top: 2px; color: var(--muted); font-size: 12.5px; }
+  .pill {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--quiet-bg);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pill.awaiting_sign_off { background: var(--warn-bg); color: var(--warn-ink); }
+  .pill.awaiting_sign_off::before { background: var(--warn-dot); }
+  .pill.signed_off, .pill.completed { background: var(--ok-bg); color: var(--ok-ink); }
+  .pill.signed_off::before, .pill.completed::before { background: var(--ok-dot); }
+  #detail { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  section {
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    overflow-wrap: anywhere;
+  }
+  h2 { margin: 0 0 12px; font-size: 15px; font-weight: 650; letter-spacing: -0.005em; }
+  h3 { margin: 0 0 6px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  p { margin: 0; white-space: pre-wrap; }
+  .heading-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .heading-row h2 { margin: 0; font-size: 17px; }
+  .quote { padding: 11px 14px; border-radius: 8px; background: var(--sunken); border: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 7px 0; text-align: left; vertical-align: top; font-weight: normal; border-bottom: 1px solid var(--line); }
+  td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.total td { border-bottom: 0; font-weight: 650; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; color: var(--muted); font-size: 12.5px; }
+  .facts span { padding: 3px 9px; border-radius: 6px; background: var(--quiet-bg); }
+  .facts span.flag { background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; }
+  .amount { margin-bottom: 6px; font-size: 22px; font-weight: 650; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+  .amount.deny { color: var(--bad-ink); }
+  .block + .block { margin-top: 16px; }
+  .verdict { padding: 14px 16px; border-radius: 8px; background: var(--sunken); border: 1px solid var(--line); }
+  .verdict h3 { margin-bottom: 2px; }
+  label { display: block; font-weight: 600; font-size: 12.5px; margin-bottom: 5px; }
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 8px 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--panel);
+    color: inherit;
+    font: inherit;
+  }
+  input[type="text"]:disabled { background: var(--quiet-bg); color: var(--muted); cursor: not-allowed; }
+  textarea { min-height: 190px; resize: vertical; }
+  .field { margin-top: 14px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  fieldset { margin: 0; padding: 0; border: 0; }
+  legend { padding: 0; font-weight: 600; font-size: 12.5px; margin-bottom: 5px; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 8px; background: var(--quiet-bg); }
+  .choices label {
+    position: relative;
+    margin: 0;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .choices input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+  .choices label:has(input:checked) { background: var(--segment); color: var(--ink); box-shadow: 0 1px 2px rgba(20, 23, 28, 0.14); }
+  .choices label:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 1px; }
+  button.primary {
+    width: 100%;
+    margin-top: 16px;
+    padding: 11px 18px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--primary-ink);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 120ms ease;
+  }
+  button.primary:hover:not(:disabled) { background: var(--primary-hover); }
+  button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .error { margin-top: 14px; padding: 9px 12px; border-radius: 7px; background: var(--bad-bg); color: var(--bad-ink); font-weight: 500; }
+  .error[hidden] { display: none; }
+  .muted { color: var(--muted); }
+  .outcome { border-top: 3px solid var(--ok-dot); }
+  .outcome .amount { margin-top: 2px; }
+  .outcome .block { margin-top: 16px; }
+  ol.history { margin: 0; padding: 0; list-style: none; font-size: 13px; }
+  ol.history li {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2px 12px;
+    padding: 5px 0 5px 18px;
+  }
+  ol.history li::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 13px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  ol.history li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 20px;
+    bottom: -13px;
+    width: 1px;
+    background: var(--line);
+  }
+  ol.history li:last-child::before { background: var(--ink); }
+  ol.history .muted { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .empty { padding: 36px 20px; text-align: center; color: var(--muted); box-shadow: none; }
+  @media (min-width: 1120px) {
+    #detail:has(.action) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      grid-template-rows: auto auto auto 1fr;
+      align-items: start;
+    }
+    .evidence { grid-column: 1; }
+    .action { grid-column: 2; grid-row: 1 / -1; }
+  }
+  @media (min-width: 1120px) and (min-height: 800px) {
+    .action { position: sticky; top: 24px; }
+  }
+  @media (max-width: 860px) {
+    header { padding: 13px 16px; }
+    #notice { width: auto; margin: 12px 16px 0; }
+    main { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 16px 16px 40px; }
+    .rail { position: static; }
+    section { padding: 16px; }
+    .row { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="mark" aria-hidden="true"></span><h1>Backroom</h1></div>
+  <p>Nothing reaches a customer until a person signs off. Orders and payments are simulated.</p>
+</header>
+<div id="notice" role="status" hidden></div>
+<main>
+  <aside class="rail">
+    <h2 class="rail-label">Cases</h2>
+    <nav id="cases" aria-label="Cases"></nav>
+  </aside>
+  <div id="detail" aria-live="polite"></div>
+</main>
+<script>
+  const STATUS_LABELS = {
+    checking: 'Being checked',
+    awaiting_sign_off: 'Needs sign-off',
+    signed_off: 'Ready to send',
+    completed: 'Sent',
+  };
+
+  let approverKey = readKey();
+  let cases = [];
+  let lastSnapshot = '';
+  let selectedId = null;
+  let draftDirty = false;
+  let draftCaseState = '';
+  let refreshFailed = false;
+
+  function readKey() {
+    const match = location.hash.match(/key=([\w-]+)/);
+    try {
+      if (match) {
+        sessionStorage.setItem('approverKey', match[1]);
+        history.replaceState(null, '', location.pathname);
+        return match[1];
+      }
+      return sessionStorage.getItem('approverKey');
+    } catch {
+      return match ? match[1] : null;
+    }
+  }
+
+  function remembered(name) {
+    try { return localStorage.getItem(name) ?? ''; } catch { return ''; }
+  }
+
+  function remember(name, value) {
+    try { localStorage.setItem(name, value); } catch { /* Storage is optional here. */ }
+  }
+
+  function el(tag, props = {}, ...children) {
+    const node = document.createElement(tag);
+    for (const [name, value] of Object.entries(props)) {
+      if (name === 'class') node.className = value;
+      else if (name in node) node[name] = value;
+      else node.setAttribute(name, value);
+    }
+    node.append(...children.filter((child) => child !== null && child !== undefined));
+    return node;
+  }
+
+  const money = (cents) => `$${(cents / 100).toFixed(2)}`;
+
+  function toCents(value) {
+    if (!/^\d+(\.\d{1,2})?$/.test(value.trim())) return null;
+    return Math.round(Number(value) * 100);
+  }
+
+  function pill(status) {
+    return el('span', { class: `pill ${status}` }, STATUS_LABELS[status] ?? status);
+  }
+
+  function showNotice() {
+    const notice = document.getElementById('notice');
+    let message = '';
+    if (refreshFailed) message = "Can't reach the Backroom server. Is it still running?";
+    else if (!approverKey) message = 'You can read cases here, but signing off needs the private link shown in the server terminal.';
+    notice.textContent = message;
+    notice.hidden = !message;
+  }
+
+  function renderList() {
+    const list = document.getElementById('cases');
+    if (cases.length === 0) {
+      list.replaceChildren(el('section', { class: 'empty' }, 'No cases yet. Ask @order-checker to look at a request.'));
+      return;
+    }
+    list.replaceChildren(...[...cases].reverse().map((item) => {
+      const button = el('button', { class: 'case-button', type: 'button' },
+        el('div', { class: 'case-title' }, el('span', {}, item.id), pill(item.status)),
+        el('div', { class: 'case-sub' }, `${item.order.customer.name} · ${item.orderId}`),
+      );
+      button.setAttribute('aria-current', String(item.id === selectedId));
+      button.addEventListener('click', () => {
+        selectedId = item.id;
+        draftDirty = false;
+        render();
+      });
+      return button;
+    }));
+  }
+
+  function orderSection(item) {
+    const { order } = item;
+    const rows = order.items.map((line) => el('tr', {},
+      el('td', {}, `${line.name}${line.qty > 1 ? ` × ${line.qty}` : ''}${line.finalSale ? ' (final sale)' : ''}`),
+      el('td', {}, money(line.priceCents * line.qty)),
+    ));
+    rows.push(el('tr', {}, el('td', {}, 'Shipping'), el('td', {}, money(order.shippingCents))));
+    rows.push(el('tr', { class: 'total' }, el('td', {}, 'Total'), el('td', {}, money(order.totalCents))));
+    return el('section', { class: 'evidence' },
+      el('div', { class: 'heading-row' }, el('h2', {}, `${item.id}: ${order.customer.name}`), pill(item.status)),
+      el('div', { class: 'block' }, el('h3', {}, 'What the customer wrote'), el('p', { class: 'quote' }, item.customerMessage)),
+      el('div', { class: 'block' }, el('h3', {}, `Order ${order.id}`), el('table', {}, el('tbody', {}, ...rows))),
+      el('div', { class: 'facts' },
+        el('span', {}, `Delivered ${order.daysSinceDelivery} days ago`),
+        el('span', {}, `Photo on file: ${order.evidence?.photoOnFile ? 'yes' : 'no'}`),
+        el('span', { class: order.customer.refundsLast90Days >= 3 ? 'flag' : '' }, `Refunds in the last 90 days: ${order.customer.refundsLast90Days}`),
+      ),
+    );
+  }
+
+  function agentSection(item) {
+    if (!item.facts && !item.recommendation) return null;
+    const rec = item.recommendation;
+    return el('section', { class: 'evidence' },
+      el('h2', {}, 'What the agents found'),
+      item.facts ? el('div', { class: 'block' }, el('h3', {}, 'Order checker'), el('p', {}, item.facts)) : null,
+      rec ? el('div', { class: 'block verdict' },
+        el('h3', {}, 'Policy challenger'),
+        el('div', { class: `amount ${rec.decision}` }, rec.decision === 'refund' ? `Refund ${money(rec.amountCents)}` : 'Deny the refund'),
+        el('p', {}, rec.reason),
+      ) : el('div', { class: 'block muted' }, 'Waiting for the policy challenger.'),
+    );
+  }
+
+  function signOffSection(item) {
+    const rec = item.recommendation;
+    const decisionInput = (value, label) => el('label', {},
+      el('input', { type: 'radio', name: 'decision', value, checked: rec.decision === value }), label);
+    const amount = el('input', {
+      type: 'text', id: 'amount', inputMode: 'decimal', autocomplete: 'off',
+      value: rec.decision === 'refund' ? (rec.amountCents / 100).toFixed(2) : '0.00',
+    });
+    const approver = el('input', { type: 'text', id: 'approver', autocomplete: 'name', value: remembered('approverName') });
+    const reply = el('textarea', { id: 'reply', value: rec.customerReply });
+    const note = el('textarea', { id: 'note', rows: 2, style: 'min-height:56px' });
+    const submit = el('button', { class: 'primary', type: 'submit', disabled: !approverKey }, 'Sign off');
+    const errorBox = el('div', { class: 'error', role: 'alert', hidden: true });
+    const form = el('form', {},
+      el('fieldset', {}, el('legend', {}, 'Decision'),
+        el('div', { class: 'choices' }, decisionInput('refund', 'Refund'), decisionInput('deny', 'Deny'))),
+      el('div', { class: 'row' },
+        el('div', { class: 'field' }, el('label', { htmlFor: 'amount' }, 'Refund amount ($)'), amount),
+        el('div', { class: 'field' }, el('label', { htmlFor: 'approver' }, 'Your name'), approver),
+      ),
+      el('div', { class: 'field' }, el('label', { htmlFor: 'reply' }, 'Reply to the customer'), reply),
+      el('div', { class: 'field' }, el('label', { htmlFor: 'note' }, 'Note on this case (optional)'), note),
+      errorBox,
+      submit,
+    );
+
+    form.addEventListener('input', (event) => {
+      draftDirty = true;
+      if (event.target.name === 'decision') {
+        amount.disabled = event.target.value === 'deny';
+        if (amount.disabled) amount.value = '0.00';
+      }
+    });
+    amount.disabled = rec.decision === 'deny';
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorBox.hidden = true;
+      const decision = form.elements.decision.value;
+      const amountCents = decision === 'deny' ? 0 : toCents(amount.value);
+      if (amountCents === null) return showError(errorBox, 'Enter the amount in dollars, for example 32.00.');
+      if (!approver.value.trim()) return showError(errorBox, 'Enter your name so the sign-off is on record.');
+      submit.disabled = true;
+      try {
+        const response = await fetch(`/api/cases/${encodeURIComponent(item.id)}/sign-off`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Approver-Key': approverKey },
+          body: JSON.stringify({ decision, amountCents, customerReply: reply.value, approver: approver.value, note: note.value }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        remember('approverName', approver.value.trim());
+        draftDirty = false;
+        await refresh(true);
+      } catch (error) {
+        showError(errorBox, error.message);
+        submit.disabled = !approverKey;
+      }
+    });
+
+    return el('section', { class: 'action' }, el('h2', {}, 'Your sign-off'), form);
+  }
+
+  function showError(box, message) {
+    box.textContent = message;
+    box.hidden = false;
+  }
+
+  function outcomeSection(item) {
+    const { signOff, sent } = item;
+    return el('section', { class: 'action outcome' },
+      el('h2', {}, sent ? 'Sent to the customer' : 'Signed off, ready to send'),
+      el('div', { class: `amount ${signOff.decision}` }, signOff.decision === 'refund' ? `Refund ${money(signOff.amountCents)}` : 'Refund denied'),
+      el('p', { class: 'muted' }, `Signed off by ${signOff.approver}${signOff.changed ? ', with changes' : ''}.`),
+      signOff.note ? el('div', { class: 'block' }, el('h3', {}, 'Note'), el('p', {}, signOff.note)) : null,
+      el('div', { class: 'block' }, el('h3', {}, 'Reply to the customer'), el('p', { class: 'quote' }, signOff.customerReply)),
+      sent ? null : el('div', { class: 'block muted' }, `Ask @order-checker to send ${item.id}.`),
+    );
+  }
+
+  function historySection(item) {
+    return el('section', { class: 'evidence' },
+      el('h2', {}, 'History'),
+      el('ol', { class: 'history' }, ...item.history.map((entry) => el('li', {},
+        el('span', {}, `${entry.event} (${entry.actor})`),
+        el('span', { class: 'muted' }, new Date(entry.at).toLocaleString()),
+      ))),
+    );
+  }
+
+  function render() {
+    renderList();
+    const detail = document.getElementById('detail');
+    const item = cases.find((candidate) => candidate.id === selectedId);
+    if (!item) {
+      detail.replaceChildren(cases.length ? el('section', { class: 'empty' }, 'Choose a case.') : '');
+      return;
+    }
+    draftCaseState = `${item.id}:${item.status}:${JSON.stringify(item.recommendation)}`;
+    const action = item.status === 'awaiting_sign_off' ? signOffSection(item)
+      : item.signOff ? outcomeSection(item) : null;
+    detail.replaceChildren(...[orderSection(item), agentSection(item), action, historySection(item)].filter(Boolean));
+  }
+
+  async function refresh(force = false) {
+    try {
+      const response = await fetch('/api/cases');
+      if (!response.ok) throw new Error('Refresh failed');
+      const text = await response.text();
+      const wasFailed = refreshFailed;
+      refreshFailed = false;
+      if (wasFailed) showNotice();
+      if (text === lastSnapshot && !force) return;
+      lastSnapshot = text;
+      cases = JSON.parse(text);
+      if (!cases.some((item) => item.id === selectedId)) {
+        const waiting = cases.find((item) => item.status === 'awaiting_sign_off');
+        selectedId = (waiting ?? cases.at(-1))?.id ?? null;
+      }
+      const item = cases.find((candidate) => candidate.id === selectedId);
+      const nextState = item ? `${item.id}:${item.status}:${JSON.stringify(item.recommendation)}` : '';
+      if (draftDirty && nextState === draftCaseState) {
+        renderList();
+      } else {
+        // The form only resets when the case itself moved on, so a person's edits aren't lost.
+        if (nextState !== draftCaseState) draftDirty = false;
+        render();
+      }
+    } catch {
+      refreshFailed = true;
+      showNotice();
+    }
+  }
+
+  showNotice();
+  refresh(true);
+  setInterval(refresh, 3000);
+</script>
+</body>
+</html>

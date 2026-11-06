@@ -1,0 +1,53 @@
+[
+  {
+    "id": "ORD-1001",
+    "customer": { "name": "Maya Rivera", "email": "maya@example.com", "refundsLast90Days": 0 },
+    "items": [
+      { "name": "Canvas tote bag", "priceCents": 3200, "qty": 1, "finalSale": false }
+    ],
+    "shippingCents": 500,
+    "status": "delivered",
+    "deliveredDaysAgo": 6
+  },
+  {
+    "id": "ORD-1002",
+    "customer": { "name": "Jon Okafor", "email": "jon@example.com", "refundsLast90Days": 0 },
+    "items": [
+      { "name": "Clearance desk lamp", "priceCents": 4500, "qty": 1, "finalSale": true }
+    ],
+    "shippingCents": 700,
+    "status": "delivered",
+    "deliveredDaysAgo": 9
+  },
+  {
+    "id": "ORD-1003",
+    "customer": { "name": "Priya Nair", "email": "priya@example.com", "refundsLast90Days": 1 },
+    "items": [
+      { "name": "Ceramic mug set", "priceCents": 5800, "qty": 1, "finalSale": false }
+    ],
+    "shippingCents": 900,
+    "status": "delivered",
+    "deliveredDaysAgo": 12,
+    "evidence": { "photoOnFile": true, "note": "Photo shows two of the four mugs broken in the box." }
+  },
+  {
+    "id": "ORD-1004",
+    "customer": { "name": "Sam Lee", "email": "sam@example.com", "refundsLast90Days": 0 },
+    "items": [
+      { "name": "Wool throw blanket", "priceCents": 7400, "qty": 1, "finalSale": false }
+    ],
+    "shippingCents": 800,
+    "status": "delivered",
+    "deliveredDaysAgo": 47
+  },
+  {
+    "id": "ORD-1005",
+    "customer": { "name": "Alex Chen", "email": "alex@example.com", "refundsLast90Days": 3 },
+    "items": [
+      { "name": "Leather wallet", "priceCents": 6000, "qty": 1, "finalSale": false }
+    ],
+    "shippingCents": 500,
+    "status": "delivered",
+    "deliveredDaysAgo": 4
+  }
+]
